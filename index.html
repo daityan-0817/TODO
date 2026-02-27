@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TODO</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <template id="app-shell-template">
+      <div class="todo-app-layout">
+        <aside class="todo-app-sidebar" aria-label="メインメニュー">
+          <div class="todo-app-brand">
+            <h1>TODO</h1>
+            <p>迷わず使える日常タスク管理</p>
+          </div>
+          <nav id="nav-root" class="todo-view-nav"></nav>
+          <div class="todo-app-sidebar-settings">
+            <label class="toggle-row">
+              <input id="delete-confirm-toggle" type="checkbox" data-action="toggle-delete-confirm" />
+              <span>削除確認</span>
+            </label>
+            <div id="notification-settings-slot"></div>
+          </div>
+        </aside>
+
+        <main class="todo-app-main-content">
+          <section class="todo-app-toolbar quick-add-panel" aria-label="タスク追加">
+            <form id="quick-add-form" class="quick-add" novalidate>
+              <label for="quick-add-input" class="sr-only">新しいタスク</label>
+              <input
+                id="quick-add-input"
+                type="text"
+                placeholder="タスクを追加（Enterで保存）"
+                maxlength="120"
+                aria-describedby="quick-add-help"
+              />
+              <label for="quick-add-start-date" class="sr-only">タスク開始日</label>
+              <label class="calendar-date-picker-field" for="quick-add-start-date" aria-label="タスク開始日を選択">
+                <span id="quick-add-start-date-display" class="calendar-date-picker-display-text">開始日を選択</span>
+                <input id="quick-add-start-date" class="calendar-date-picker-native-input" type="date" aria-label="タスク開始日" />
+              </label>
+              <label for="quick-add-priority" class="sr-only">優先順位</label>
+              <select id="quick-add-priority" aria-label="優先順位">
+                <option value="none">優先度: 未設定</option>
+                <option value="high">優先度: 高</option>
+                <option value="medium">優先度: 中</option>
+                <option value="low">優先度: 低</option>
+              </select>
+              <button type="submit">追加</button>
+            </form>
+            <p id="quick-add-help" class="subtle">タスク開始日と優先順位を設定できます（未設定は「日付未設定」へ）。</p>
+            <div id="quick-add-error-slot"></div>
+          </section>
+
+          <div id="view-root"></div>
+        </main>
+      </div>
+      <div id="undo-root"></div>
+    </template>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
