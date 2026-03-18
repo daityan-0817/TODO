@@ -8,41 +8,40 @@
   </head>
   <body>
     <div id="app"></div>
-    <template id="app-shell-template">
-      <div class="todo-app-layout">
-        <aside class="todo-app-sidebar" aria-label="メインメニュー">
-          <div class="todo-app-brand">
+    <template id="application-layout-template">
+      <div class="application-layout">
+        <header class="application-header" aria-label="メインメニュー">
+          <div class="application-brand">
             <h1>TODO</h1>
             <p>迷わず使える日常タスク管理</p>
           </div>
-          <nav id="nav-root" class="todo-view-nav"></nav>
-          <div class="todo-app-sidebar-settings">
-            <label class="toggle-row">
-              <input id="delete-confirm-toggle" type="checkbox" data-action="toggle-delete-confirm" />
-              <span>削除確認</span>
-            </label>
-            <div id="notification-settings-slot"></div>
-          </div>
-        </aside>
+          <nav id="primary-navigation" class="view-navigation"></nav>
+        </header>
 
-        <main class="todo-app-main-content">
-          <section class="todo-app-toolbar quick-add-panel" aria-label="タスク追加">
-            <form id="quick-add-form" class="quick-add" novalidate>
-              <label for="quick-add-input" class="sr-only">新しいタスク</label>
+        <main class="application-main">
+          <section class="task-entry-panel" aria-label="タスク追加">
+            <form id="task-entry-form" class="task-entry-form" novalidate>
+              <label for="task-title-input" class="sr-only">新しいタスク</label>
               <input
-                id="quick-add-input"
+                id="task-title-input"
                 type="text"
                 placeholder="タスクを追加（Enterで保存）"
                 maxlength="120"
-                aria-describedby="quick-add-help"
+                aria-describedby="task-entry-help"
               />
-              <label for="quick-add-start-date" class="sr-only">タスク開始日</label>
-              <label class="calendar-date-picker-field" for="quick-add-start-date" aria-label="タスク開始日を選択">
-                <span id="quick-add-start-date-display" class="calendar-date-picker-display-text">開始日を選択</span>
-                <input id="quick-add-start-date" class="calendar-date-picker-native-input" type="date" aria-label="タスク開始日" />
-              </label>
-              <label for="quick-add-priority" class="sr-only">優先順位</label>
-              <select id="quick-add-priority" aria-label="優先順位">
+              <label for="task-start-date-input" class="sr-only">タスク開始日</label>
+              <div class="task-date-picker-field" aria-label="タスク開始日を選択">
+                <button type="button" class="task-date-picker-trigger" data-action="open-task-entry-start-date-picker">
+                  <span
+                    id="task-start-date-label"
+                    class="task-date-picker-display-text"
+                    data-empty-label="開始日"
+                  ></span>
+                </button>
+                <input id="task-start-date-input" class="task-date-picker-native-input" type="date" aria-label="タスク開始日" />
+              </div>
+              <label for="task-priority-select" class="sr-only">優先順位</label>
+              <select id="task-priority-select" aria-label="優先順位">
                 <option value="none">優先度: 未設定</option>
                 <option value="high">優先度: 高</option>
                 <option value="medium">優先度: 中</option>
@@ -50,14 +49,197 @@
               </select>
               <button type="submit">追加</button>
             </form>
-            <p id="quick-add-help" class="subtle">タスク開始日と優先順位を設定できます（未設定は「日付未設定」へ）。</p>
-            <div id="quick-add-error-slot"></div>
+            <p id="task-entry-help" class="subtle">タスク開始日と優先順位を設定できます（未設定は「日付未設定」へ）。</p>
+            <div id="task-entry-error-area"></div>
           </section>
 
-          <div id="view-root"></div>
+          <section id="task-view-section"></section>
         </main>
+
+        <footer class="application-footer">
+          <div class="application-preferences">
+            <label class="toggle-row">
+              <input id="delete-confirmation-toggle" type="checkbox" data-action="toggle-delete-confirm" />
+              <span>削除確認</span>
+            </label>
+            <div id="notification-settings-area"></div>
+          </div>
+          <div id="undo-notice-area"></div>
+        </footer>
       </div>
-      <div id="undo-root"></div>
+    </template>
+    <template id="view-navigation-button-template">
+      <button class="nav-button" type="button" data-action="switch-view" aria-current="false">
+        <span data-slot="label"></span>
+        <span class="count" data-slot="count"></span>
+      </button>
+    </template>
+    <template id="task-entry-error-template">
+      <p id="task-entry-error" class="error-text" role="alert" data-slot="message"></p>
+    </template>
+    <template id="today-task-view-template">
+      <section class="panel">
+        <div class="panel-head">
+          <h3>今日やること</h3>
+          <label class="toggle-row">
+            <input type="checkbox" data-action="toggle-show-completed-today" />
+            <span>完了も表示</span>
+          </label>
+        </div>
+        <p class="subtle">遅れ → 今日期限 → 今日にピン留め の順で自動表示します。</p>
+        <div data-slot="sections"></div>
+        <p class="empty" data-slot="empty-message" hidden>今日の未完了タスクはありません。</p>
+      </section>
+    </template>
+    <template id="today-task-section-template">
+      <section class="section-block">
+        <div class="section-title" data-slot="title"></div>
+        <ul class="task-list" data-slot="task-list"></ul>
+        <p class="empty small" data-slot="empty-message" hidden>該当タスクなし</p>
+      </section>
+    </template>
+    <template id="date-box-task-view-template">
+      <section class="panel">
+        <div class="panel-head">
+          <h3>日付ボックス</h3>
+          <label class="toggle-row">
+            <input type="checkbox" data-action="toggle-show-completed-inbox" />
+            <span>完了も表示</span>
+          </label>
+        </div>
+        <p class="subtle">日付ごとのボックスに自動整理。各ボックス内は優先度順に並びます。</p>
+        <div data-slot="groups"></div>
+        <p class="subtle" data-slot="hidden-done-count" hidden></p>
+      </section>
+    </template>
+    <template id="all-tasks-view-template">
+      <section class="panel">
+        <div class="panel-head">
+          <h3>すべて</h3>
+          <p class="subtle" data-slot="result-count"></p>
+        </div>
+        <div class="filters">
+          <div class="field">
+            <label for="all-search">検索</label>
+            <input id="all-search" type="search" placeholder="タイトル / メモ" />
+          </div>
+          <div class="field">
+            <label for="filter-completion">表示</label>
+            <select id="filter-completion">
+              <option value="open">未完了のみ</option>
+              <option value="all">完了含む</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="filter-priority">優先度</label>
+            <select id="filter-priority">
+              <option value="all">すべて</option>
+              <option value="none">未設定</option>
+              <option value="high">高</option>
+              <option value="medium">中</option>
+              <option value="low">低</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="filter-due">期限</label>
+            <select id="filter-due">
+              <option value="all">すべて</option>
+              <option value="none">期限なし</option>
+              <option value="has">期限あり</option>
+              <option value="overdue">遅れ</option>
+              <option value="today">今日</option>
+              <option value="upcoming">今後</option>
+            </select>
+          </div>
+        </div>
+        <div data-slot="groups"></div>
+      </section>
+    </template>
+    <template id="task-list-item-template">
+      <li class="task-item">
+        <div class="task-main">
+          <div class="task-headline">
+            <label class="check-wrap">
+              <input type="checkbox" data-action="toggle-complete" />
+              <span class="check-visual" aria-hidden="true"></span>
+            </label>
+            <div class="task-texts">
+              <input
+                class="title-input"
+                type="text"
+                data-action="update-title"
+                maxlength="120"
+                aria-label="タスクタイトル"
+              />
+              <div class="task-meta">
+                <span class="badge" data-slot="priority-badge"></span>
+                <span class="badge" data-slot="due-badge"></span>
+                <span class="badge" data-slot="today-badge" hidden>今日</span>
+              </div>
+            </div>
+          </div>
+          <div class="task-controls" aria-label="整理操作">
+            <button type="button" class="ghost-button" data-action="pin-today">今日に入れる</button>
+            <div class="task-detail-field">
+              <span>日付</span>
+              <div class="task-date-picker-field task-date-picker-inline" aria-label="タスク日付を選択">
+                <button type="button" class="task-date-picker-trigger" data-action="open-task-start-date-picker">
+                  <span class="task-date-picker-display-text" data-slot="start-date-display" data-empty-label="日付を設定"></span>
+                </button>
+                <input class="task-date-picker-native-input" type="date" data-action="update-start-date" />
+              </div>
+            </div>
+            <label class="task-detail-field">
+              <span>優先度</span>
+              <select data-action="update-priority">
+                <option value="none">未設定</option>
+                <option value="high">高</option>
+                <option value="medium">中</option>
+                <option value="low">低</option>
+              </select>
+            </label>
+            <div class="task-action-row">
+              <button type="button" class="ghost-button" data-action="toggle-complete-button">完了</button>
+              <button type="button" class="danger-button" data-action="delete-task">削除</button>
+            </div>
+          </div>
+          <label class="task-note-field">
+            <span>メモ</span>
+            <textarea rows="2" placeholder="補足メモ（任意）" data-action="update-note"></textarea>
+          </label>
+        </div>
+      </li>
+    </template>
+    <template id="date-group-template">
+      <section class="task-date-group">
+        <div class="task-date-group-header">
+          <h4 data-slot="title"></h4>
+          <span class="count" data-slot="count"></span>
+        </div>
+        <ul class="task-list" data-slot="task-list"></ul>
+      </section>
+    </template>
+    <template id="undo-notice-template">
+      <div class="undo-notice" role="status" aria-live="polite">
+        <span data-slot="label"></span>
+        <button type="button" data-action="undo">Undo</button>
+        <small data-slot="remaining"></small>
+      </div>
+    </template>
+    <template id="notification-preferences-template">
+      <div class="notification-preferences">
+        <label class="toggle-row">
+          <input id="notifications-enabled-toggle" type="checkbox" data-action="toggle-notifications-enabled" />
+          <span>デスクトップ通知</span>
+        </label>
+        <p class="hint" data-slot="permission-label"></p>
+        <button type="button" class="ghost-button sidebar-button" data-action="request-notification-permission" hidden>
+          通知を許可する
+        </button>
+      </div>
+    </template>
+    <template id="empty-state-message-template">
+      <p class="empty"></p>
     </template>
     <script type="module" src="/src/main.ts"></script>
   </body>
